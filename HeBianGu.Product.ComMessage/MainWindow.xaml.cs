@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Threading;
+using System.IO.Ports;
 
 namespace HeBianGu.Product.ComMessage
 {
@@ -171,6 +172,10 @@ namespace HeBianGu.Product.ComMessage
 
                 ComDevice = new port.SerialPort(this.Com, int.Parse(this.Rate), this.Parity, 8, this.StopBits);
 
+                ///设置无协议
+                ComDevice.Handshake = Handshake.None;
+                ComDevice.DtrEnable = true;
+
 
                 ComDevice.DataReceived += (l, k) =>
                 {
@@ -180,13 +185,14 @@ namespace HeBianGu.Product.ComMessage
 
                         // 开辟接收缓冲区
                         byte[] ReDatas = new byte[ComDevice.BytesToRead];
+
                         //从串口读取数据
                         ComDevice.Read(ReDatas, 0, ReDatas.Length);
                         //实现数据的解码与显示
 
                         //AddData(ReDatas);
 
-                        this.Text += DateTime.Now.ToString("hh:mm:ss") + ":" + ReDatas.Select(m => m.ToString()).Aggregate((m, n) => m.ToString() + " " + n.ToString()) + Environment.NewLine;
+                        this.Text += DateTime.Now.ToString("hh:mm:ss") + ":   " + ReDatas.Select(m => Convert.ToString(m, 16)).Aggregate((m, n) => m.ToString() + " " + n.ToString()) + Environment.NewLine;
                     }
                     catch (Exception ex)
                     {

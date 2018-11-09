@@ -1,0 +1,286 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using port = System.IO.Ports;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using System.Threading;
+
+namespace HeBianGu.Product.ComMessage
+{
+    /// <summary>
+    /// MainWindow.xaml 的交互逻辑
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+
+        MainNotifyClass _vm = new MainNotifyClass();
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            this.DataContext = _vm;
+        }
+    }
+
+
+
+    partial class MainNotifyClass
+    {
+
+
+        private string _com;
+        /// <summary> 说明  </summary>
+        public string Com
+        {
+            get { return _com; }
+            set
+            {
+                _com = value;
+                RaisePropertyChanged("Com");
+            }
+        }
+
+
+        private string _rate = "115200";
+        /// <summary> 说明  </summary>
+        public string Rate
+        {
+            get { return _rate; }
+            set
+            {
+                _rate = value;
+                RaisePropertyChanged("Rate");
+            }
+        }
+
+
+        private port.Parity _parity = port.Parity.None;
+        /// <summary> 说明  </summary>
+        public port.Parity Parity
+        {
+            get { return _parity; }
+            set
+            {
+                _parity = value;
+                RaisePropertyChanged("Parity");
+            }
+        }
+
+
+        private string _dataBits = "8";
+        /// <summary> 说明  </summary>
+        public string DataBits
+        {
+            get { return _dataBits; }
+            set
+            {
+                _dataBits = value;
+                RaisePropertyChanged("DataBits");
+            }
+        }
+
+
+        private port.StopBits _stopBits = port.StopBits.One;
+        /// <summary> 说明  </summary>
+        public port.StopBits StopBits
+        {
+            get { return _stopBits; }
+            set
+            {
+                _stopBits = value;
+                RaisePropertyChanged("StopBits");
+            }
+        }
+
+
+        private string _text;
+        /// <summary> 说明  </summary>
+        public string Text
+        {
+            get { return _text; }
+            set
+            {
+                _text = value;
+                RaisePropertyChanged("Text");
+            }
+        }
+
+
+        private string _message;
+        /// <summary> 说明  </summary>
+        public string Message
+        {
+            get { return _message; }
+            set
+            {
+                _message = value;
+                RaisePropertyChanged("Message");
+
+                if (_message == null) return;
+
+                Task.Run(() =>
+                {
+                    Thread.Sleep(3000);
+
+                    Message = null;
+
+                });
+            }
+        }
+
+        port.SerialPort ComDevice;
+
+        public void RelayMethod(object obj)
+        {
+            string command = obj.ToString();
+
+            //  Do：应用
+            if (command == "open")
+            {
+
+                if (ComDevice != null && ComDevice.IsOpen)
+                {
+                    this.Message = "串口已經打開";
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(this.Com))
+                {
+                    this.Message = "请选择串口号";
+                    return;
+                }
+
+                Debug.WriteLine(this.Com);
+                Debug.WriteLine(this.Rate);
+                Debug.WriteLine(this.Parity);
+                Debug.WriteLine(this.DataBits);
+                Debug.WriteLine(this.StopBits);
+
+                ComDevice = new port.SerialPort(this.Com, int.Parse(this.Rate), this.Parity, 8, this.StopBits);
+
+
+                ComDevice.DataReceived += (l, k) =>
+                {
+                    try
+                    {
+                        Debug.WriteLine(DateTime.Now + "接收到数据");
+
+                        // 开辟接收缓冲区
+                        byte[] ReDatas = new byte[ComDevice.BytesToRead];
+                        //从串口读取数据
+                        ComDevice.Read(ReDatas, 0, ReDatas.Length);
+                        //实现数据的解码与显示
+
+                        //AddData(ReDatas);
+
+                        this.Text += DateTime.Now.ToString("hh:mm:ss") + ":" + ReDatas.Select(m => m.ToString()).Aggregate((m, n) => m.ToString() + " " + n.ToString()) + Environment.NewLine;
+                    }
+                    catch (Exception ex)
+                    {
+                        Message = ex.Message;
+                    }
+
+                };
+
+                try
+                {
+                    //开启串口
+                    ComDevice.Open();
+                }
+                catch (Exception ex)
+                {
+                    Message = ex.Message;
+                }
+
+                //Task.Run(()=>
+                //{
+                //    while(true)
+                //    {
+                //        Thread.Sleep(1000);
+
+                //        this.Text += "35 34 36 30 35 36 38 31 39 36 34 36"+Environment.NewLine;
+                //    }
+                //});
+            }
+            //  Do：取消
+            else if (command == "Cancel")
+            {
+
+
+            }
+        }
+    }
+
+    partial class MainNotifyClass : INotifyPropertyChanged
+    {
+        public RelayCommand RelayCommand { get; set; }
+
+        public MainNotifyClass()
+        {
+            RelayCommand = new RelayCommand(RelayMethod);
+
+        }
+        #region - MVVM -
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void RaisePropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            if (PropertyChanged != null)
+                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+    }
+
+    /// <summary> 带参数的命令 </summary>
+    public class RelayCommand : ICommand
+    {
+        private Action<object> _action;
+        public RelayCommand(Action<object> action)
+        {
+            _action = action;
+        }
+        #region ICommand Members
+        public bool CanExecute(object parameter)
+        {
+            return true;
+        }
+        public event EventHandler CanExecuteChanged;
+        public void Execute(object parameter)
+        {
+            if (parameter != null)
+            {
+                _action(parameter);
+            }
+            else
+            {
+                _action("Hello");
+            }
+        }
+        #endregion
+
+
+
+        /// <summary> 隐式转换 </summary>
+        static public implicit operator RelayCommand(Action<object> action)
+        {
+            RelayCommand s = new RelayCommand(action);
+            return s;
+        }
+    }
+
+}

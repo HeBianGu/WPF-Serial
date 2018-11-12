@@ -11,9 +11,6 @@
 
     <Window.Resources>
 
-        <RoutedUICommand x:Key="RoutedUICommand.OpenPort" Text="打开端口"/>
-
-
         <ObjectDataProvider x:Key="DataSourc_SerialPort" MethodName="GetPortNames" ObjectType="{x:Type port:SerialPort}"/>
 
         <ObjectDataProvider x:Key="DataSource_Parity" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
@@ -28,7 +25,6 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
-
         <Style TargetType="{x:Type ComboBox}">
             <Setter Property="Height" Value="35"/>
         </Style>
@@ -37,10 +33,7 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
     </Window.Resources>
-
-    <Window.CommandBindings>
-        <CommandBinding Command="{StaticResource RoutedUICommand.OpenPort}"/>
-    </Window.CommandBindings>
+    
     <Grid Margin="5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="23*"/>
@@ -52,7 +45,7 @@
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
-        <GroupBox Header="串口设置">
+        <GroupBox Header="串口设置" IsEnabled="{Binding ElementName=btn_open,Path=IsEnabled}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -127,9 +120,9 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!--<Button Content="打开串口" Height="30" Width="100" HorizontalAlignment="Left" Margin="10,0" Command="{StaticResource RoutedUICommand.OpenPort}" CommandParameter="open"/>-->
+            <Button x:Name="btn_open" Content="打开串口" Height="30" Width="100" HorizontalAlignment="Left" Margin="10,0" Command="{Binding RelayCommand}" CommandParameter="open"/>
 
-            <Button Content="打开串口" Height="30" Width="100" Visibility="{Binding Visibility}" HorizontalAlignment="Left" Margin="10,0" Command="{Binding RelayCommand}" CommandParameter="open"/>
+            <Button Content="关闭串口" Height="30" Width="100" HorizontalAlignment="Left" Margin="150,0" Command="{Binding RelayCommand}" CommandParameter="close"/>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <TextBox TextWrapping="Wrap"  Text="{Binding Text,Mode=OneWay}"/>

@@ -216,20 +216,28 @@ namespace HeBianGu.Product.ComMessage
                     Message = ex.Message;
                 }
 
-                //Task.Run(()=>
-                //{
-                //    while(true)
-                //    {
-                //        Thread.Sleep(1000);
-
-                //        this.Text += "35 34 36 30 35 36 38 31 39 36 34 36"+Environment.NewLine;
-                //    }
-                //});
+                finally
+                {
+                    this.RelayCommand.Refresh();
+                }
             }
             //  Do：取消
-            else if (command == "Cancel")
+            else if (command == "close")
             {
+                try
+                {
+                    //开启串口
+                    ComDevice.Close();
+                }
+                catch (Exception ex)
+                {
+                    Message = ex.Message;
+                }
 
+                finally
+                {
+                    this.RelayCommand.Refresh();
+                }
 
             }
         }
@@ -250,30 +258,18 @@ namespace HeBianGu.Product.ComMessage
 
             }
             //  Do：取消
-            else if (command == "Cancel")
+            else if (command == "close")
             {
+                if (ComDevice == null) return false;
 
+                if (ComDevice.IsOpen) return true;
+
+                return false;
 
             }
 
             return true;
         }
-
-
-
-        private Visibility _visiblity;
-        /// <summary> 说明  </summary>
-        public Visibility Visibility
-        {
-            get { return _visiblity; }
-            set
-            {
-                _visiblity = value;
-                RaisePropertyChanged("Visibility");
-            }
-        }
-
-
 
     }
 
@@ -284,17 +280,8 @@ namespace HeBianGu.Product.ComMessage
         public MainNotifyClass()
         {
             RelayCommand = new RelayCommand(RelayMethod, CanRelayMethod);
-
-            RelayCommand.CanExecuteChanged += RelayCommand_CanExecuteChanged;
-
         }
-
-        private void RelayCommand_CanExecuteChanged(object sender, EventArgs e)
-        {
-            bool v = this.CanRelayMethod(sender);
-
-            this.Visibility = v ? Visibility.Visible : Visibility.Collapsed;
-        }
+        
         #region - MVVM -
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -330,30 +317,25 @@ namespace HeBianGu.Product.ComMessage
             if (_canAction == null) return true;
 
              return _canAction(parameter);
-
-            //////CanExecuteChanged?.Invoke(v, EventArgs.Empty);
-
-            ////return v;
-
-            //if (this._canAction == null)
-            //    return true;
-
-            //Boolean bResult = this._canAction(parameter);
-
-            //if (bResult != _canExecuteCache)
-            //{
-            //    _canExecuteCache = bResult;
-
-            //    EventHandler handler = CanExecuteChanged;
-
-            //    if (handler != null)
-            //        handler(parameter, EventArgs.Empty);
-            //}
-
-            //return bResult;
+            
 
         }
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add
+            {
+                CommandManager.RequerySuggested += value;
+            }
+            remove
+            {
+                CommandManager.RequerySuggested -= value;
+            }
+        }
+
+        public void Refresh()
+        {
+            CommandManager.InvalidateRequerySuggested();
+        }
 
         public void Execute(object parameter)
         {

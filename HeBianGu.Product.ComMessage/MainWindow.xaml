@@ -7,7 +7,7 @@
         xmlns:port="clr-namespace:System.IO.Ports;assembly=System"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d" FontSize="15"
-        Title="串口测试工具" Height="351.104" Width="915.852">
+        Title="串口测试工具" Height="396.104" Width="915.852">
 
     <Window.Resources>
 
@@ -36,16 +36,16 @@
     
     <Grid Margin="5">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="23*"/>
-            <ColumnDefinition Width="24*"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
 
-        <GroupBox Header="串口设置" IsEnabled="{Binding ElementName=btn_open,Path=IsEnabled}">
+        <GroupBox Header="串口设置" IsEnabled="{Binding ElementName=btn_open,Path=IsEnabled}" Height="280" VerticalAlignment="Top">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>

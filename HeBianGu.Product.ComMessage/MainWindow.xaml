@@ -9,8 +9,10 @@
         mc:Ignorable="d" FontSize="15"
         Title="串口测试工具" Height="351.104" Width="915.852">
 
-
     <Window.Resources>
+
+        <RoutedUICommand x:Key="RoutedUICommand.OpenPort" Text="打开端口"/>
+
 
         <ObjectDataProvider x:Key="DataSourc_SerialPort" MethodName="GetPortNames" ObjectType="{x:Type port:SerialPort}"/>
 
@@ -35,6 +37,10 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
     </Window.Resources>
+
+    <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource RoutedUICommand.OpenPort}"/>
+    </Window.CommandBindings>
     <Grid Margin="5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="23*"/>
@@ -121,8 +127,9 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Button Content="打开串口" Height="30" Width="100" HorizontalAlignment="Left" Margin="10,0" Command="{Binding RelayCommand}" CommandParameter="open"/>
+            <!--<Button Content="打开串口" Height="30" Width="100" HorizontalAlignment="Left" Margin="10,0" Command="{StaticResource RoutedUICommand.OpenPort}" CommandParameter="open"/>-->
 
+            <Button Content="打开串口" Height="30" Width="100" Visibility="{Binding Visibility}" HorizontalAlignment="Left" Margin="10,0" Command="{Binding RelayCommand}" CommandParameter="open"/>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <TextBox TextWrapping="Wrap"  Text="{Binding Text,Mode=OneWay}"/>

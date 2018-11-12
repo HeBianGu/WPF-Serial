@@ -34,6 +34,11 @@ namespace HeBianGu.Product.ComMessage
 
             this.DataContext = _vm;
         }
+
+        private void CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+
+        }
     }
 
 
@@ -228,6 +233,48 @@ namespace HeBianGu.Product.ComMessage
 
             }
         }
+
+        public bool CanRelayMethod(object obj)
+        {
+            string command = obj.ToString();
+
+
+            //  Do：应用
+            if (command == "open")
+            {
+                if (ComDevice == null) return true;
+
+                if (ComDevice.IsOpen) return false;
+
+                return true;
+
+            }
+            //  Do：取消
+            else if (command == "Cancel")
+            {
+
+
+            }
+
+            return true;
+        }
+
+
+
+        private Visibility _visiblity;
+        /// <summary> 说明  </summary>
+        public Visibility Visibility
+        {
+            get { return _visiblity; }
+            set
+            {
+                _visiblity = value;
+                RaisePropertyChanged("Visibility");
+            }
+        }
+
+
+
     }
 
     partial class MainNotifyClass : INotifyPropertyChanged
@@ -236,8 +283,17 @@ namespace HeBianGu.Product.ComMessage
 
         public MainNotifyClass()
         {
-            RelayCommand = new RelayCommand(RelayMethod);
+            RelayCommand = new RelayCommand(RelayMethod, CanRelayMethod);
 
+            RelayCommand.CanExecuteChanged += RelayCommand_CanExecuteChanged;
+
+        }
+
+        private void RelayCommand_CanExecuteChanged(object sender, EventArgs e)
+        {
+            bool v = this.CanRelayMethod(sender);
+
+            this.Visibility = v ? Visibility.Visible : Visibility.Collapsed;
         }
         #region - MVVM -
 
@@ -256,16 +312,49 @@ namespace HeBianGu.Product.ComMessage
     public class RelayCommand : ICommand
     {
         private Action<object> _action;
-        public RelayCommand(Action<object> action)
+
+        private Predicate<object> _canAction;
+
+        public RelayCommand(Action<object> action, Predicate<object> canAction)
         {
             _action = action;
+
+            _canAction = canAction;
         }
+
+        Boolean _canExecuteCache;
+
         #region ICommand Members
         public bool CanExecute(object parameter)
         {
-            return true;
+            if (_canAction == null) return true;
+
+             return _canAction(parameter);
+
+            //////CanExecuteChanged?.Invoke(v, EventArgs.Empty);
+
+            ////return v;
+
+            //if (this._canAction == null)
+            //    return true;
+
+            //Boolean bResult = this._canAction(parameter);
+
+            //if (bResult != _canExecuteCache)
+            //{
+            //    _canExecuteCache = bResult;
+
+            //    EventHandler handler = CanExecuteChanged;
+
+            //    if (handler != null)
+            //        handler(parameter, EventArgs.Empty);
+            //}
+
+            //return bResult;
+
         }
         public event EventHandler CanExecuteChanged;
+
         public void Execute(object parameter)
         {
             if (parameter != null)
@@ -281,12 +370,12 @@ namespace HeBianGu.Product.ComMessage
 
 
 
-        /// <summary> 隐式转换 </summary>
-        static public implicit operator RelayCommand(Action<object> action)
-        {
-            RelayCommand s = new RelayCommand(action);
-            return s;
-        }
+        ///// <summary> 隐式转换 </summary>
+        //static public implicit operator RelayCommand(Action<object> action,Predicate<object> canAction)
+        //{
+        //    RelayCommand s = new RelayCommand(action, canAction);
+        //    return s;
+        //}
     }
 
 }
